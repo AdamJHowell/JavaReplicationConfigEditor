@@ -12,17 +12,15 @@ class Config
 	 */
 	private final String baseDirectory;
 	/**
-	 * The config directory, relative to the base directory.
+	 * Optional: The config directory, relative to the base directory.
+	 * Defaults to 'config'.
 	 */
 	private final String configDirectory;
-	/**
-	 * The data directory, relative to the base directory.
-	 */
-	private final String dataDirectory;
 
 
 	/**
-	 * The name of the server config file, typically 'ctsrvr.cfg'.
+	 * Optional: The name of the server config file.
+	 * Defaults to 'ctsrvr.cfg'.
 	 */
 	private final String serverFileName;
 	/**
@@ -55,21 +53,23 @@ class Config
 
 
 	/**
-	 * The name of the HTTP daemon config file, typically 'cthttpd.json'.
+	 * Optional: The name of the HTTP daemon config file.
+	 * Defaults to 'cthttpd.json'.
 	 */
 	private final String httpFileName;
 	/**
 	 * The 'listening_http_port' value for 'cthttpd.json'.
 	 */
-	private final String listeningHttpPort;
+	private final Integer listeningHttpPort;
 	/**
 	 * The 'listening_https_port' value for 'cthttpd.json'.
 	 */
-	private final String listeningHttpsPort;
+	private final Integer listeningHttpsPort;
 
 
 	/**
-	 * The name of the Agent config file, typically 'ctagent.json'.
+	 * Optional: The name of the Agent config file.
+	 * Defaults to 'ctagent.json'.
 	 */
 	private final String agentFileName;
 	/**
@@ -78,8 +78,9 @@ class Config
 	private final String memphisServerName;
 	/**
 	 * The 'memphis_sql_port' value for 'ctagent.json'.
+	 * This value will also be used to update ctReplicationManager.cfg.
 	 */
-	private final String memphisSqlPort;
+	private final Integer memphisSqlPort;
 	/**
 	 * The 'memphis_host' value for 'ctagent.json'.
 	 */
@@ -90,14 +91,50 @@ class Config
 	private final String memphisDatabase;
 
 
-	public Config( String baseDirectory, String configDirectory, String dataDirectory,
+	/**
+	 * Optional: The name of the Agent config file.
+	 * Defaults to 'ctReplicationManager.cfg'.
+	 * This file only exists in the Replication Manager (Memphis) config directory.
+	 * The 'MEMPHIS_SQL_PORT' value in this file will be updated with the value from memphisSqlPort.
+	 */
+	private final String replicationManagerFileName;
+
+
+	/**
+	 * The no-arg constructor prevents Gson from initializing missing values to null.
+	 * These defaults are set to a typical Replication Manager setup.
+	 */
+	public Config()
+	{
+		this.baseDirectory = "";
+		this.configDirectory = "config";
+		this.serverFileName = "ctsrvr.cfg";
+		this.serverName = "MEMPHIS";
+		this.serverPort = "19991";
+		this.readOnlyServer = "NO";
+		this.sqlPort = "19991";
+		this.httpPlugin = "";
+		this.agentPlugin = "";
+		this.httpFileName = "cthttpd.json";
+		this.listeningHttpPort = 19993;
+		this.listeningHttpsPort = 19992;
+		this.agentFileName = "ctagent.json";
+		this.memphisServerName = "\"MEMPHIS\"";
+		this.memphisSqlPort = 19991;
+		this.memphisHost = "\"127.0.0.1\"";
+		this.memphisDatabase = "\"MEMPHIS\"";
+		this.replicationManagerFileName = "ctReplicationManager.cfg";
+	}
+
+
+	public Config( String baseDirectory, String configDirectory,
 		String serverFileName, String serverName, String serverPort, String readOnlyServer, String sqlPort, String httpPlugin, String agentPlugin,
-		String httpFileName, String listeningHttpPort, String listeningHttpsPort,
-		String agentFileName, String memphisServerName, String memphisSqlPort, String memphisHost, String memphisDatabase )
+		String httpFileName, Integer listeningHttpPort, Integer listeningHttpsPort,
+		String agentFileName, String memphisServerName, Integer memphisSqlPort, String memphisHost, String memphisDatabase,
+		String replicationManagerFileName )
 	{
 		this.baseDirectory = baseDirectory;
 		this.configDirectory = configDirectory;
-		this.dataDirectory = dataDirectory;
 		this.serverFileName = serverFileName;
 		this.serverName = serverName;
 		this.serverPort = serverPort;
@@ -113,6 +150,7 @@ class Config
 		this.memphisSqlPort = memphisSqlPort;
 		this.memphisHost = memphisHost;
 		this.memphisDatabase = memphisDatabase;
+		this.replicationManagerFileName = replicationManagerFileName;
 	}
 
 
@@ -125,12 +163,6 @@ class Config
 	public String getConfigDirectory()
 	{
 		return configDirectory;
-	}
-
-
-	public String getDataDirectory()
-	{
-		return dataDirectory;
 	}
 
 
@@ -182,13 +214,13 @@ class Config
 	}
 
 
-	public String getListeningHttpPort()
+	public Integer getListeningHttpPort()
 	{
 		return listeningHttpPort;
 	}
 
 
-	public String getListeningHttpsPort()
+	public Integer getListeningHttpsPort()
 	{
 		return listeningHttpsPort;
 	}
@@ -206,7 +238,7 @@ class Config
 	}
 
 
-	public String getMemphisSqlPort()
+	public Integer getMemphisSqlPort()
 	{
 		return memphisSqlPort;
 	}
@@ -221,5 +253,11 @@ class Config
 	public String getMemphisDatabase()
 	{
 		return memphisDatabase;
+	}
+
+
+	public String getReplicationManagerFileName()
+	{
+		return replicationManagerFileName;
 	}
 }

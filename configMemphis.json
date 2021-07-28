@@ -1,22 +1,27 @@
 {
-	"baseDirectory":      "c:/faircom/replication/ReplicationManager",
-	"configDirectory":    "config",
-	"dataDirectory":      "data",
+	"baseDirectory":              "c:/faircom/replication/ReplicationManager",
+	"configDirectory":            "config",
 
-	"serverFileName":     "ctsrvr.cfg",
-	"serverName":         "MEMPHIS",
-	"readOnlyServer":     "NO",
-	"sqlPort":            "19991",
-	"httpPlugin":         "PLUGIN cthttpd;./web/cthttpd.dll",
-	"agentPlugin":        "PLUGIN ctagent;./agent/ctagent.dll",
+	"serverFileName":             "ctsrvr.cfg",
+	"serverName":                 "MEMPHIS",
+	"readOnlyServer":             "NO",
+	"sqlPort":                    "19991",
+	"httpPlugin":                 "./web/cthttpd.dll",
+	"agentPlugin":                "./agent/ctagent.dll",
+	"linuxHttpPlugin":            "./web/libcthttpd.so",
+	"linuxAgentPlugin":           "./agent/libctagent.so",
+	"macHttpPlugin":              "./web/libcthttpd.dylib",
+	"macAgentPlugin":             "./agent/libctagent.dylib",
 
-	"httpFileName":       "cthttpd.json",
-	"listeningHttpPort":  "19993",
-	"listeningHttpsPort": "19992",
+	"httpFileName":               "cthttpd.json",
+	"listeningHttpPort":          19993,
+	"listeningHttpsPort":         19992,
 
-	"agentFileName":      "ctagent.json",
-	"memphisServerName":  "MEMPHIS",
-	"memphisSqlPort":     "19991",
-	"memphisHost":        "127.0.0.1",
-	"memphisDatabase":    "MEMPHIS"
+	"agentFileName":              "ctagent.json",
+	"memphisServerName":          "\"MEMPHIS\"",
+	"memphisSqlPort":             19991,
+	"memphisHost":                "\"127.0.0.1\"",
+	"memphisDatabase":            "\"MEMPHIS\"",
+
+	"replicationManagerFileName": "ctReplicationManager.cfg"
 }

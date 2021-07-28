@@ -24,7 +24,8 @@ public class Main
 	private static final Logger mainLogger = Logger.getLogger( Main.class.getName() );
 	private static final ConsoleHandler singleLine = new ConsoleHandler();
 	private static final String FILE_SEP = System.getProperty( "file.separator" );
-	private static final String BUILD_TIME = "main() - build 2021-07-27T0955";
+	private static final String BUILD_TIME = "main() - build 2021-07-278 1552";
+	private static final String UPDATING = "Updating ";
 
 
 	public static void main( String[] args )
@@ -50,25 +51,39 @@ public class Main
 		serverConfigMap.put( "SERVER_PORT", config.getServerPort() );
 		serverConfigMap.put( "READONLY_SERVER", config.getReadOnlyServer() );
 		serverConfigMap.put( "SQL_PORT", config.getSqlPort() );
-		serverConfigMap.put( "httpPlugin", config.getHttpPlugin() );
-		serverConfigMap.put( "agentPlugin", config.getAgentPlugin() );
-		updateConfig( serverConfigFileName, serverConfigMap );
+//		serverConfigMap.put( "PLUGIN cthttpd;", config.getHttpPlugin() );
+//		serverConfigMap.put( "PLUGIN ctagent;", config.getAgentPlugin() );
+		logString = UPDATING + serverConfigFileName;
+		mainLogger.log( Level.INFO, logString );
+		updateConfig( serverConfigFileName, serverConfigMap, false );
 
 		// HTTP configuration section.
 		String httpConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getHttpFileName();
 		Map<String, String> httpConfigMap = new HashMap<String, String>(){ };
-		httpConfigMap.put( "listening_http_port", config.getListeningHttpPort() );
-		httpConfigMap.put( "listening_https_port", config.getListeningHttpsPort() );
-		updateConfig( httpConfigFileName, httpConfigMap );
+		httpConfigMap.put( "\"listening_http_port\":", config.getListeningHttpPort().toString() );
+		httpConfigMap.put( "\"listening_https_port\":", config.getListeningHttpsPort().toString() );
+		logString = UPDATING + httpConfigFileName;
+		mainLogger.log( Level.INFO, logString );
+		updateConfig( httpConfigFileName, httpConfigMap, false );
 
 		// Agent configuration section.
 		String agentConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getAgentFileName();
 		Map<String, String> agentConfigMap = new HashMap<String, String>(){ };
-		agentConfigMap.put( "memphis_server_name", config.getMemphisServerName() );
-		agentConfigMap.put( "memphis_sql_port", config.getMemphisSqlPort() );
-		agentConfigMap.put( "memphis_host", config.getMemphisHost() );
-		agentConfigMap.put( "memphis_database", config.getMemphisDatabase() );
-		updateConfig( agentConfigFileName, agentConfigMap );
+		agentConfigMap.put( "\"memphis_server_name\":", config.getMemphisServerName() );
+		agentConfigMap.put( "\"memphis_sql_port\":", config.getMemphisSqlPort().toString() );
+		agentConfigMap.put( "\"memphis_host\":", config.getMemphisHost() );
+		agentConfigMap.put( "\"memphis_database\":", config.getMemphisDatabase() );
+		logString = UPDATING + agentConfigFileName;
+		mainLogger.log( Level.INFO, logString );
+		updateConfig( agentConfigFileName, agentConfigMap, false );
+
+		String replicationManagerConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getReplicationManagerFileName();
+		Map<String, String> replicationManagerConfigMap = new HashMap<String, String>(){ };
+		// Note that this uses the same port configured in the agent.json section.
+		replicationManagerConfigMap.put( "MEMPHIS_SQL_PORT", config.getMemphisSqlPort().toString() );
+		logString = UPDATING + replicationManagerConfigFileName;
+		mainLogger.log( Level.INFO, logString );
+		updateConfig( replicationManagerConfigFileName, replicationManagerConfigMap, true );
 	} // End of main() method.
 
 
@@ -79,22 +94,26 @@ public class Main
 	 *
 	 * @param configFileName the file to open and parse.
 	 * @param configMap      a map containing keys to search for and values to append to those keys.
+	 * @param startsWith     flag to indicate the line should start with the key, instead of just containing the key.
 	 */
-	private static void updateConfig( String configFileName, Map<String, String> configMap )
+	private static void updateConfig( String configFileName, Map<String, String> configMap, boolean startsWith )
 	{
 		String logString = "updateConfig()";
-		mainLogger.log( Level.INFO, logString );
+		mainLogger.log( Level.FINE, logString );
 
 		// Open the server config file.
-		File serverConfigFile = new File( configFileName );
+		File configFile = new File( configFileName );
+		String suffix = "";
+		if( configFileName.endsWith( "json" ) )
+			suffix = ",";
 
-		if( serverConfigFile.exists() && serverConfigFile.isFile() )
+		if( configFile.exists() && configFile.isFile() )
 		{
 			List<String> fileLinesList = readFileToList( configFileName );
 
 			for( int i = 0; i < fileLinesList.size(); i++ )
 			{
-				fileLinesList.set( i, fixLine( fileLinesList.get( i ), configMap ) );
+				fileLinesList.set( i, fixLine( fileLinesList.get( i ), configMap, suffix, startsWith ) );
 			}
 			writeListToFile( configFileName, fileLinesList );
 		}
@@ -107,15 +126,22 @@ public class Main
 
 
 	/**
-	 * fixLine() takes a String and searches it for every key in a HashMap.
-	 * If the key is found, the method returns the key and value from the HashMap.
-	 * If the String does not contain any of the keys in the HashMap, no changes will be made to that line.
+	 * fixLine() takes a String and searches it for every key in a HashMap.<br>
+	 * If the key is found, the method returns the key and value from the HashMap.<br>
+	 * If the String does not contain any of the keys in the HashMap, no changes will be made to that line.<br>
+	 * <br>
+	 * The startsWith boolean is set to true in cases where a comment line also contains the key we are searching for.<br>
+	 * This prevents the method from uncommenting comment lines.  This is typically used for 'ctReplicationManager.cfg'<br>
+	 * If startsWith is set to true, and a file has lines that need to be uncommented, this method will not uncomment them.<br>
+	 * The startsWith value should not be set to true for formatted JSON, because it will skip indented lines.<br>
 	 *
-	 * @param line  the String to search through.
-	 * @param myMap a HashMap of keys to search for and values to append.
+	 * @param line       the String to search through.
+	 * @param myMap      a HashMap of keys to search for and values to append.
+	 * @param suffix     a suffix to add to the end of the line.
+	 * @param startsWith flag to indicate the line should start with the key, instead of just containing the key.
 	 * @return a String containing the key and value.
 	 */
-	static String fixLine( String line, Map<String, String> myMap )
+	static String fixLine( String line, Map<String, String> myMap, String suffix, boolean startsWith )
 	{
 		String logString = "fixLine()";
 		mainLogger.log( Level.FINE, logString );
@@ -124,11 +150,32 @@ public class Main
 		{
 			String key = entry.getKey();
 			Object value = entry.getValue();
+
 			if( line.contains( key ) )
 			{
-				line = key + '\t' + value;
-				logString = "fixLine() is updating this line: \"" + line + "\"";
-				mainLogger.log( Level.INFO, logString );
+				// This block will uncomment lines.
+				if( !startsWith )
+				{
+					// Try to preserve indentation.
+					String indentation = line.substring( 0, line.indexOf( key ) );
+					// Remove the comment character used in ctsrvr.cfg.
+					if( indentation.contains( ";" ) )
+					{
+						indentation = indentation.replaceFirst( ";", "" );
+					}
+					line = indentation + key + '\t' + value + suffix;
+					logString = "fixLine() is updating this line: \"" + line + "\"";
+					mainLogger.log( Level.INFO, logString );
+				}
+				// This block will not alter commented lines.
+				else if( line.startsWith( key ) )
+				{
+					// Try to preserve indentation.
+					String indentation = line.substring( 0, line.indexOf( key ) );
+					line = indentation + key + '\t' + value + suffix;
+					logString = "fixLine() is updating this line: \"" + line + "\"";
+					mainLogger.log( Level.INFO, logString );
+				}
 			}
 		}
 		return line;
@@ -226,10 +273,15 @@ public class Main
 	public static void writeListToFile( String outFileName, List<String> inList )
 	{
 		StringBuilder mySB = new StringBuilder();
+		boolean first = true;
 		// Convert a List<String> to one single String.
 		for( String line : inList )
 		{
-			mySB.append( line ).append( '\n' );
+			// This prevents the addition of an unwanted extra \n at the end of the file.
+			if( !first )
+				mySB.append( '\n' );
+			mySB.append( line );
+			first = false;
 		}
 		// Write the String to a file.
 		writeStringToFile( outFileName, mySB.toString() );
