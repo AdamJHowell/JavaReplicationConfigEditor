@@ -37,7 +37,7 @@ public class Main
 		mainLogger.log( Level.INFO, logString );
 		mainLogger.log( Level.INFO, BUILD_TIME );
 
-		String configFileName = "config1.json";
+		String configFileName = "config.json";
 		if( args.length > 0 )
 		{
 			configFileName = args[0];
@@ -56,12 +56,19 @@ public class Main
 		logString = UPDATING + serverConfigFileName;
 		mainLogger.log( Level.INFO, logString );
 		updateConfig( serverConfigFileName, serverConfigMap, false );
+		clearComment( serverConfigFileName, "cthttpd." );
+		clearComment( serverConfigFileName, "ctagent." );
 
 		// HTTP configuration section.
 		String httpConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getHttpFileName();
 		Map<String, String> httpConfigMap = new HashMap<String, String>(){ };
 		httpConfigMap.put( "\"listening_http_port\":", config.getListeningHttpPort().toString() );
 		httpConfigMap.put( "\"listening_https_port\":", config.getListeningHttpsPort().toString() );
+		// Replication Manager does not have settings for MQTT ports.
+		if( config.getMqttListeningPort() != null )
+			httpConfigMap.put( "\"mqtt_listening_port\":", config.getMqttListeningPort().toString() );
+		if( config.getMqttWebsocketPort() != null )
+			httpConfigMap.put( "\"mqtt_websocket_port\":", config.getMqttWebsocketPort().toString() );
 		logString = UPDATING + httpConfigFileName;
 		mainLogger.log( Level.INFO, logString );
 		updateConfig( httpConfigFileName, httpConfigMap, false );
@@ -77,13 +84,16 @@ public class Main
 		mainLogger.log( Level.INFO, logString );
 		updateConfig( agentConfigFileName, agentConfigMap, false );
 
-		String replicationManagerConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getReplicationManagerFileName();
-		Map<String, String> replicationManagerConfigMap = new HashMap<String, String>(){ };
-		// Note that this uses the same port configured in the agent.json section.
-		replicationManagerConfigMap.put( "MEMPHIS_SQL_PORT", config.getMemphisSqlPort().toString() );
-		logString = UPDATING + replicationManagerConfigFileName;
-		mainLogger.log( Level.INFO, logString );
-		updateConfig( replicationManagerConfigFileName, replicationManagerConfigMap, true );
+		if( !config.getReplicationManagerFileName().isEmpty() )
+		{
+			String replicationManagerConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getReplicationManagerFileName();
+			Map<String, String> replicationManagerConfigMap = new HashMap<String, String>(){ };
+			// Note that this uses the same port configured in the agent.json section.
+			replicationManagerConfigMap.put( "MEMPHIS_SQL_PORT", config.getMemphisSqlPort().toString() );
+			logString = UPDATING + replicationManagerConfigFileName;
+			mainLogger.log( Level.INFO, logString );
+			updateConfig( replicationManagerConfigFileName, replicationManagerConfigMap, true );
+		}
 	} // End of main() method.
 
 
@@ -113,6 +123,7 @@ public class Main
 
 			for( int i = 0; i < fileLinesList.size(); i++ )
 			{
+				// Set this entry of the list to the fixed line.
 				fileLinesList.set( i, fixLine( fileLinesList.get( i ), configMap, suffix, startsWith ) );
 			}
 			writeListToFile( configFileName, fileLinesList );
@@ -123,6 +134,38 @@ public class Main
 			mainLogger.log( Level.INFO, logString );
 		}
 	} // End of updateConfig() method.
+
+
+	static void clearComment( String configFileName, String textToFind )
+	{
+		String logString = "clearComment()";
+		mainLogger.log( Level.FINE, logString );
+
+		// Open the server config file.
+		File configFile = new File( configFileName );
+
+		if( configFile.exists() && configFile.isFile() )
+		{
+			List<String> fileLinesList = readFileToList( configFileName );
+
+			for( int i = 0; i < fileLinesList.size(); i++ )
+			{
+				String line = fileLinesList.get( i );
+				// Search for the text, and see if the line begins with a semicolon.
+				if( line.contains( textToFind ) && line.trim().startsWith( ";" ) )
+				{
+					// Set this entry of the list to the fixed line.
+					fileLinesList.set( i, line.replaceFirst( ";", "" ) );
+				}
+			}
+			writeListToFile( configFileName, fileLinesList );
+		}
+		else
+		{
+			logString = "Unable to find the configuration file: " + configFileName;
+			mainLogger.log( Level.INFO, logString );
+		}
+	}
 
 
 	/**
@@ -315,7 +358,7 @@ public class Main
 	} // End of writeStringToFile() method.
 
 
-	// Setup the default format for the console logger.
+	// Set up the default format for the console logger.
 	static
 	{
 		singleLine.setFormatter( new SimpleFormatter()

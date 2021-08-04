@@ -65,6 +65,8 @@ class Config
 	 * The 'listening_https_port' value for 'cthttpd.json'.
 	 */
 	private final Integer listeningHttpsPort;
+	private final Integer mqttListeningPort;
+	private final Integer mqttWebsocketPort;
 
 
 	/**
@@ -118,18 +120,20 @@ class Config
 		this.httpFileName = "cthttpd.json";
 		this.listeningHttpPort = 19993;
 		this.listeningHttpsPort = 19992;
+		this.mqttListeningPort = null;
+		this.mqttWebsocketPort = null;
 		this.agentFileName = "ctagent.json";
 		this.memphisServerName = "\"MEMPHIS\"";
 		this.memphisSqlPort = 19991;
 		this.memphisHost = "\"127.0.0.1\"";
 		this.memphisDatabase = "\"MEMPHIS\"";
-		this.replicationManagerFileName = "ctReplicationManager.cfg";
+		this.replicationManagerFileName = "";
 	}
 
 
 	public Config( String baseDirectory, String configDirectory,
 		String serverFileName, String serverName, String serverPort, String readOnlyServer, String sqlPort, String httpPlugin, String agentPlugin,
-		String httpFileName, Integer listeningHttpPort, Integer listeningHttpsPort,
+		String httpFileName, Integer listeningHttpPort, Integer listeningHttpsPort, Integer mqttListeningPort, Integer mqttWebsocketPort,
 		String agentFileName, String memphisServerName, Integer memphisSqlPort, String memphisHost, String memphisDatabase,
 		String replicationManagerFileName )
 	{
@@ -145,6 +149,8 @@ class Config
 		this.httpFileName = httpFileName;
 		this.listeningHttpPort = listeningHttpPort;
 		this.listeningHttpsPort = listeningHttpsPort;
+		this.mqttListeningPort = mqttListeningPort;
+		this.mqttWebsocketPort = mqttWebsocketPort;
 		this.agentFileName = agentFileName;
 		this.memphisServerName = memphisServerName;
 		this.memphisSqlPort = memphisSqlPort;
@@ -223,6 +229,18 @@ class Config
 	public Integer getListeningHttpsPort()
 	{
 		return listeningHttpsPort;
+	}
+
+
+	public Integer getMqttListeningPort()
+	{
+		return mqttListeningPort;
+	}
+
+
+	public Integer getMqttWebsocketPort()
+	{
+		return mqttWebsocketPort;
 	}
 
 
