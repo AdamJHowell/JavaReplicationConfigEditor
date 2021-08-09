@@ -44,22 +44,21 @@ public class Main
 		}
 		Config config = validateConfigFileName( configFileName );
 
-		// Server configuration section.
+		// ctsrvr.cfg section.
 		String serverConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getServerFileName();
 		Map<String, String> serverConfigMap = new HashMap<String, String>(){ };
 		serverConfigMap.put( "SERVER_NAME", config.getServerName() );
 		serverConfigMap.put( "SERVER_PORT", config.getServerPort() );
 		serverConfigMap.put( "READONLY_SERVER", config.getReadOnlyServer() );
 		serverConfigMap.put( "SQL_PORT", config.getSqlPort() );
-//		serverConfigMap.put( "PLUGIN cthttpd;", config.getHttpPlugin() );
-//		serverConfigMap.put( "PLUGIN ctagent;", config.getAgentPlugin() );
 		logString = UPDATING + serverConfigFileName;
 		mainLogger.log( Level.INFO, logString );
 		updateConfig( serverConfigFileName, serverConfigMap, false );
+		// Remove comments from lines that load required plugins.
 		clearComment( serverConfigFileName, "cthttpd." );
 		clearComment( serverConfigFileName, "ctagent." );
 
-		// HTTP configuration section.
+		// cthttpd.json configuration section.
 		String httpConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getHttpFileName();
 		Map<String, String> httpConfigMap = new HashMap<String, String>(){ };
 		httpConfigMap.put( "\"listening_http_port\":", config.getListeningHttpPort().toString() );
@@ -73,7 +72,7 @@ public class Main
 		mainLogger.log( Level.INFO, logString );
 		updateConfig( httpConfigFileName, httpConfigMap, false );
 
-		// Agent configuration section.
+		// ctagent.json configuration section.
 		String agentConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getAgentFileName();
 		Map<String, String> agentConfigMap = new HashMap<String, String>(){ };
 		agentConfigMap.put( "\"memphis_server_name\":", config.getMemphisServerName() );
@@ -84,6 +83,7 @@ public class Main
 		mainLogger.log( Level.INFO, logString );
 		updateConfig( agentConfigFileName, agentConfigMap, false );
 
+		// ctReplicationManager.cfg configuration section.
 		if( !config.getReplicationManagerFileName().isEmpty() )
 		{
 			String replicationManagerConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getReplicationManagerFileName();
@@ -136,6 +136,23 @@ public class Main
 	} // End of updateConfig() method.
 
 
+	/**
+	 * clearComment() will remove a comment character from a file.
+	 * This method will search through a file identified by configFileName, searching each line for textToFind.
+	 * If a line contains textToFind, whitespace will be removed from the beginning and ending of the line.
+	 * If the resulting line begins with ';', that first semicolon will be removed.
+	 * This will not remove more than one semicolon per line.
+	 * A line that begins with two semicolons will only have one removed.
+	 * A line like this: ';;SETENV JVM_LIB=/usr/java/jdk1.7.0_75/jre/lib/i386/server/libjvm.so'
+	 * Will end up like this: ';SETENV JVM_LIB=/usr/java/jdk1.7.0_75/jre/lib/i386/server/libjvm.so'
+	 * Running the program a second time will clear lines that are double-commented.
+	 * This will not remove a semicolon that comes after any character other than whitespace.
+	 * A line like this: 'PLUGIN cthttpd;./web/cthttpd.dll', will not be changed.
+	 * A line like this: ';PLUGIN ctagent;./agent/ctagent.dll', will have only the first semicolon removed.
+	 *
+	 * @param configFileName the file to search through.
+	 * @param textToFind     a unique String identifying the line to uncomment.
+	 */
 	static void clearComment( String configFileName, String textToFind )
 	{
 		String logString = "clearComment()";
@@ -154,8 +171,11 @@ public class Main
 				// Search for the text, and see if the line begins with a semicolon.
 				if( line.contains( textToFind ) && line.trim().startsWith( ";" ) )
 				{
+					line = line.replaceFirst( ";", "" );
 					// Set this entry of the list to the fixed line.
-					fileLinesList.set( i, line.replaceFirst( ";", "" ) );
+					fileLinesList.set( i, line );
+					logString = "\tclearComment() is updating this line: '" + line + "'";
+					mainLogger.log( Level.INFO, logString );
 				}
 			}
 			writeListToFile( configFileName, fileLinesList );
@@ -165,7 +185,7 @@ public class Main
 			logString = "Unable to find the configuration file: " + configFileName;
 			mainLogger.log( Level.INFO, logString );
 		}
-	}
+	} // End of clearComment() method.
 
 
 	/**
@@ -207,7 +227,7 @@ public class Main
 						indentation = indentation.replaceFirst( ";", "" );
 					}
 					line = indentation + key + '\t' + value + suffix;
-					logString = "fixLine() is updating this line: \"" + line + "\"";
+					logString = "\tfixLine() is updating this line: '" + line + "'";
 					mainLogger.log( Level.INFO, logString );
 				}
 				// This block will not alter commented lines.
@@ -216,7 +236,7 @@ public class Main
 					// Try to preserve indentation.
 					String indentation = line.substring( 0, line.indexOf( key ) );
 					line = indentation + key + '\t' + value + suffix;
-					logString = "fixLine() is updating this line: \"" + line + "\"";
+					logString = "\tfixLine() is updating this line: '" + line + "'";
 					mainLogger.log( Level.INFO, logString );
 				}
 			}

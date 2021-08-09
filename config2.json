@@ -7,12 +7,6 @@
 	"serverPort":         "19800",
 	"readOnlyServer":     "NO",
 	"sqlPort":            "19801",
-	"httpPlugin":         "PLUGIN cthttpd;./web/cthttpd.dll",
-	"agentPlugin":        "PLUGIN ctagent;./agent/ctagent.dll",
-	"linuxHttpPlugin":    "PLUGIN cthttpd;./web/libcthttpd.so",
-	"linuxAgentPlugin":   "PLUGIN ctagent;./agent/libctagent.so",
-	"macHttpPlugin":      "PLUGIN cthttpd;./web/libcthttpd.dylib",
-	"macAgentPlugin":     "PLUGIN ctagent;./agent/libctagent.dylib",
 
 	"httpFileName":       "cthttpd.json",
 	"listeningHttpPort":  19803,

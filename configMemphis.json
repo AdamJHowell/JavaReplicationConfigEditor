@@ -6,12 +6,6 @@
 	"serverName":                 "MEMPHIS",
 	"readOnlyServer":             "NO",
 	"sqlPort":                    "19991",
-	"httpPlugin":                 "./web/cthttpd.dll",
-	"agentPlugin":                "./agent/ctagent.dll",
-	"linuxHttpPlugin":            "./web/libcthttpd.so",
-	"linuxAgentPlugin":           "./agent/libctagent.so",
-	"macHttpPlugin":              "./web/libcthttpd.dylib",
-	"macAgentPlugin":             "./agent/libctagent.dylib",
 
 	"httpFileName":               "cthttpd.json",
 	"listeningHttpPort":          19993,

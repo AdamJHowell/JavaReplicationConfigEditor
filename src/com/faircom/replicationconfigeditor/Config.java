@@ -40,16 +40,6 @@ class Config
 	 * The 'SQL_PORT' value for 'ctsrvr.cfg'.
 	 */
 	private final String sqlPort;
-	/**
-	 * The 'httpPlugin' value for 'ctsrvr.cfg'.
-	 * Note: This library name is OS specific (Windows/Linux/Mac)!
-	 */
-	private final String httpPlugin;
-	/**
-	 * The 'agentPlugin' value for 'ctsrvr.cfg'.
-	 * Note: This library name is OS specific (Windows/Linux/Mac)!
-	 */
-	private final String agentPlugin;
 
 
 	/**
@@ -115,8 +105,6 @@ class Config
 		this.serverPort = "19991";
 		this.readOnlyServer = "NO";
 		this.sqlPort = "19991";
-		this.httpPlugin = "";
-		this.agentPlugin = "";
 		this.httpFileName = "cthttpd.json";
 		this.listeningHttpPort = 19993;
 		this.listeningHttpsPort = 19992;
@@ -132,7 +120,7 @@ class Config
 
 
 	public Config( String baseDirectory, String configDirectory,
-		String serverFileName, String serverName, String serverPort, String readOnlyServer, String sqlPort, String httpPlugin, String agentPlugin,
+		String serverFileName, String serverName, String serverPort, String readOnlyServer, String sqlPort,
 		String httpFileName, Integer listeningHttpPort, Integer listeningHttpsPort, Integer mqttListeningPort, Integer mqttWebsocketPort,
 		String agentFileName, String memphisServerName, Integer memphisSqlPort, String memphisHost, String memphisDatabase,
 		String replicationManagerFileName )
@@ -144,8 +132,6 @@ class Config
 		this.serverPort = serverPort;
 		this.readOnlyServer = readOnlyServer;
 		this.sqlPort = sqlPort;
-		this.httpPlugin = httpPlugin;
-		this.agentPlugin = agentPlugin;
 		this.httpFileName = httpFileName;
 		this.listeningHttpPort = listeningHttpPort;
 		this.listeningHttpsPort = listeningHttpsPort;
@@ -199,18 +185,6 @@ class Config
 	public String getSqlPort()
 	{
 		return sqlPort;
-	}
-
-
-	public String getHttpPlugin()
-	{
-		return httpPlugin;
-	}
-
-
-	public String getAgentPlugin()
-	{
-		return agentPlugin;
 	}
 
 
