@@ -3,6 +3,7 @@ package com.faircom.replicationconfigeditor;
 
 /**
  * This class represents the configuration for this program.<br>
+ * It should be able to edit any file that it has write access to (CIFS, SAN, etc.).<br>
  * It contains cTree JDBC, MQTT server, and test parameters.
  */
 class Config
@@ -55,7 +56,13 @@ class Config
 	 * The 'listening_https_port' value for 'cthttpd.json'.
 	 */
 	private final Integer listeningHttpsPort;
+	/**
+	 * The 'mqtt_listening_port' value for 'cthttpd.json'.
+	 */
 	private final Integer mqttListeningPort;
+	/**
+	 * The 'mqtt_websocket_port' value for 'cthttpd.json'.
+	 */
 	private final Integer mqttWebsocketPort;
 
 
@@ -98,10 +105,11 @@ class Config
 	 */
 	public Config()
 	{
+		String memphis = "MEMPHIS";
 		this.baseDirectory = "";
 		this.configDirectory = "config";
 		this.serverFileName = "ctsrvr.cfg";
-		this.serverName = "MEMPHIS";
+		this.serverName = memphis;
 		this.serverPort = "19991";
 		this.readOnlyServer = "NO";
 		this.sqlPort = "19991";
@@ -111,38 +119,11 @@ class Config
 		this.mqttListeningPort = null;
 		this.mqttWebsocketPort = null;
 		this.agentFileName = "ctagent.json";
-		this.memphisServerName = "\"MEMPHIS\"";
+		this.memphisServerName = memphis;
 		this.memphisSqlPort = 19991;
-		this.memphisHost = "\"127.0.0.1\"";
-		this.memphisDatabase = "\"MEMPHIS\"";
+		this.memphisHost = "127.0.0.1";
+		this.memphisDatabase = memphis;
 		this.replicationManagerFileName = "";
-	}
-
-
-	public Config( String baseDirectory, String configDirectory,
-		String serverFileName, String serverName, String serverPort, String readOnlyServer, String sqlPort,
-		String httpFileName, Integer listeningHttpPort, Integer listeningHttpsPort, Integer mqttListeningPort, Integer mqttWebsocketPort,
-		String agentFileName, String memphisServerName, Integer memphisSqlPort, String memphisHost, String memphisDatabase,
-		String replicationManagerFileName )
-	{
-		this.baseDirectory = baseDirectory;
-		this.configDirectory = configDirectory;
-		this.serverFileName = serverFileName;
-		this.serverName = serverName;
-		this.serverPort = serverPort;
-		this.readOnlyServer = readOnlyServer;
-		this.sqlPort = sqlPort;
-		this.httpFileName = httpFileName;
-		this.listeningHttpPort = listeningHttpPort;
-		this.listeningHttpsPort = listeningHttpsPort;
-		this.mqttListeningPort = mqttListeningPort;
-		this.mqttWebsocketPort = mqttWebsocketPort;
-		this.agentFileName = agentFileName;
-		this.memphisServerName = memphisServerName;
-		this.memphisSqlPort = memphisSqlPort;
-		this.memphisHost = memphisHost;
-		this.memphisDatabase = memphisDatabase;
-		this.replicationManagerFileName = replicationManagerFileName;
 	}
 
 
@@ -251,5 +232,30 @@ class Config
 	public String getReplicationManagerFileName()
 	{
 		return replicationManagerFileName;
+	}
+
+
+	@Override public String toString()
+	{
+		return "Config{" +
+		       "\"baseDirectory\":\"" + baseDirectory + '\"' +
+		       ", \"configDirectory\":\"" + configDirectory + '\"' +
+		       ", \"serverFileName\":\"" + serverFileName + '\"' +
+		       ", \"serverName\":\"" + serverName + '\"' +
+		       ", \"serverPort\":\"" + serverPort + '\"' +
+		       ", \"readOnlyServer\":\"" + readOnlyServer + '\"' +
+		       ", \"sqlPort\":\"" + sqlPort + '\"' +
+		       ", \"httpFileName\":\"" + httpFileName + '\"' +
+		       ", \"listeningHttpPort\":" + listeningHttpPort +
+		       ", \"listeningHttpsPort\":" + listeningHttpsPort +
+		       ", \"mqttListeningPort\":" + mqttListeningPort +
+		       ", \"mqttWebsocketPort\":" + mqttWebsocketPort +
+		       ", \"agentFileName\":\"" + agentFileName + '\"' +
+		       ", \"memphisServerName\":\"" + memphisServerName + '\"' +
+		       ", \"memphisSqlPort\":" + memphisSqlPort +
+		       ", \"memphisHost\":\"" + memphisHost + '\"' +
+		       ", \"memphisDatabase\":\"" + memphisDatabase + '\"' +
+		       ", \"replicationManagerFileName\":\"" + replicationManagerFileName + '\"' +
+		       '}';
 	}
 }

@@ -2,6 +2,7 @@ package com.faircom.replicationconfigeditor;
 
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -9,6 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -18,14 +21,17 @@ import java.util.logging.*;
  * I think that I am done at 12:32.
  * Confirmed that the JAR file works at the Windows command line at 12:37.
  * Refactored individual configuration update functions into a single generic function at 12:57
+ * This will enable the program to keep track of all ports, and warn of conflicts.
  */
 public class Main
 {
 	private static final Logger mainLogger = Logger.getLogger( Main.class.getName() );
 	private static final ConsoleHandler singleLine = new ConsoleHandler();
+	private static final ConsoleHandler tripleLine = new ConsoleHandler();
 	private static final String FILE_SEP = System.getProperty( "file.separator" );
-	private static final String BUILD_TIME = "main() - build 2021-07-278 1552";
+	private static final String BUILD_TIME = "main() - build 2021-09-30 1742";
 	private static final String UPDATING = "Updating ";
+	private static final String UNABLE_TO_UPDATE = "Unable to update \"";
 
 
 	public static void main( String[] args )
@@ -42,59 +48,145 @@ public class Main
 		{
 			configFileName = args[0];
 		}
-		Config config = validateConfigFileName( configFileName );
+		if( validateConfigFileName( configFileName ) )
+		{
+			Config[] configArray = loadConfig( configFileName );
+			if( configArray.length == 0 )
+			{
+				exiting( "Unable to parse the JSON in \"" + configFileName + "\" into an Array of Config class objects.", -2 );
+			}
+			// Parse all configured nodes.
+			for( Config configuredNode : configArray )
+			{
+				updateFiles( configuredNode );
+			}
+		}
+		else
+		{
+			exiting( "Cannot locate the configuration file!", -3 );
+		}
+	} // End of main() method.
+
+
+	/**
+	 * updateFiles() will take a Config class object and change the files it has configured.
+	 *
+	 * @param configuredNode the Config class object to process.
+	 * @see com.faircom.replicationconfigeditor.Config
+	 */
+	public static void updateFiles( Config configuredNode )
+	{
+		String logString = "updateFiles()";
+		mainLogger.log( Level.FINE, logString );
+		String configDirectory = configuredNode.getBaseDirectory() + FILE_SEP + configuredNode.getConfigDirectory();
 
 		// ctsrvr.cfg section.
-		String serverConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getServerFileName();
-		Map<String, String> serverConfigMap = new HashMap<String, String>(){ };
+		String serverConfigFileName = configDirectory + FILE_SEP + configuredNode.getServerFileName();
+		Map<String, Object> serverConfigMap = buildServerConfigMap( configuredNode );
+		// Add a few blank lines before this next log.
+		singleToTriple();
+		logString = UPDATING + serverConfigFileName;
+		mainLogger.log( Level.INFO, logString );
+		// Revert to single line logging.
+		tripleToSingle();
+		if( updateConfig( serverConfigFileName, serverConfigMap, false ) )
+		{
+			// Remove comments from lines that load required plugins.
+			clearComment( serverConfigFileName, "cthttpd." );
+			clearComment( serverConfigFileName, "ctagent." );
+		}
+		else
+			exiting( UNABLE_TO_UPDATE + serverConfigFileName + "\"", -4 );
+
+		// cthttpd.json configuration section.
+		String httpConfigFileName = configDirectory + FILE_SEP + configuredNode.getHttpFileName();
+		Map<String, Object> httpConfigMap = buildHTTPConfigMap( configuredNode );
+		logString = UPDATING + httpConfigFileName;
+		mainLogger.log( Level.INFO, logString );
+		if( !updateConfig( httpConfigFileName, httpConfigMap, false ) )
+			exiting( UNABLE_TO_UPDATE + httpConfigFileName + "\"", -4 );
+
+		// ctagent.json configuration section.
+		String agentConfigFileName = configDirectory + FILE_SEP + configuredNode.getAgentFileName();
+		Map<String, Object> agentConfigMap = buildAgentConfigMap( configuredNode );
+		logString = UPDATING + agentConfigFileName;
+		mainLogger.log( Level.INFO, logString );
+		if( !updateConfig( agentConfigFileName, agentConfigMap, false ) )
+			exiting( UNABLE_TO_UPDATE + agentConfigFileName + "\"", -4 );
+
+		// Replication Manager is the only node that has ctReplicationManager.cfg.
+		if( !configuredNode.getReplicationManagerFileName().isEmpty() )
+		{
+			String replicationManagerConfigFileName = configDirectory + FILE_SEP + configuredNode.getReplicationManagerFileName();
+			Map<String, Object> replicationManagerConfigMap = new HashMap<String, Object>(){ };
+			// Note that this uses the same port configured in the agent.json section.
+			replicationManagerConfigMap.put( "MEMPHIS_SQL_PORT", configuredNode.getMemphisSqlPort().toString() );
+			logString = UPDATING + replicationManagerConfigFileName;
+			mainLogger.log( Level.INFO, logString );
+			if( !updateConfig( replicationManagerConfigFileName, replicationManagerConfigMap, true ) )
+				exiting( UNABLE_TO_UPDATE + replicationManagerConfigFileName + "\"", -4 );
+		}
+	} // End of updateFiles() method.
+
+
+	/**
+	 * buildServerConfigMap() builds a Map of values from the contents of the Config class.
+	 *
+	 * @param config the configuration read in from file.
+	 * @return a Map that contains the keys and values from the configuration file.
+	 */
+	public static Map<String, Object> buildServerConfigMap( Config config )
+	{
+		String logString = "buildServerConfigMap()";
+		mainLogger.log( Level.FINE, logString );
+		Map<String, Object> serverConfigMap = new HashMap<String, Object>(){ };
 		serverConfigMap.put( "SERVER_NAME", config.getServerName() );
 		serverConfigMap.put( "SERVER_PORT", config.getServerPort() );
 		serverConfigMap.put( "READONLY_SERVER", config.getReadOnlyServer() );
 		serverConfigMap.put( "SQL_PORT", config.getSqlPort() );
-		logString = UPDATING + serverConfigFileName;
-		mainLogger.log( Level.INFO, logString );
-		updateConfig( serverConfigFileName, serverConfigMap, false );
-		// Remove comments from lines that load required plugins.
-		clearComment( serverConfigFileName, "cthttpd." );
-		clearComment( serverConfigFileName, "ctagent." );
+		return serverConfigMap;
+	} // End of buildServerConfigMap() method.
 
-		// cthttpd.json configuration section.
-		String httpConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getHttpFileName();
-		Map<String, String> httpConfigMap = new HashMap<String, String>(){ };
+
+	/**
+	 * buildHTTPConfigMap() builds a Map of values from the contents of the Config class.
+	 *
+	 * @param config the configuration read in from file.
+	 * @return a Map that contains the keys and values from the configuration file.
+	 */
+	public static Map<String, Object> buildHTTPConfigMap( Config config )
+	{
+		String logString = "buildHTTPConfigMap()";
+		mainLogger.log( Level.FINE, logString );
+		Map<String, Object> httpConfigMap = new HashMap<String, Object>(){ };
 		httpConfigMap.put( "\"listening_http_port\":", config.getListeningHttpPort().toString() );
 		httpConfigMap.put( "\"listening_https_port\":", config.getListeningHttpsPort().toString() );
-		// Replication Manager does not have settings for MQTT ports.
+		// Replication Manager does not have settings for MQTT ports, so Gson will set these to null if they are absent from the configuration file.
 		if( config.getMqttListeningPort() != null )
 			httpConfigMap.put( "\"mqtt_listening_port\":", config.getMqttListeningPort().toString() );
 		if( config.getMqttWebsocketPort() != null )
 			httpConfigMap.put( "\"mqtt_websocket_port\":", config.getMqttWebsocketPort().toString() );
-		logString = UPDATING + httpConfigFileName;
-		mainLogger.log( Level.INFO, logString );
-		updateConfig( httpConfigFileName, httpConfigMap, false );
+		return httpConfigMap;
+	} // End of buildHTTPConfigMap() method.
 
-		// ctagent.json configuration section.
-		String agentConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getAgentFileName();
-		Map<String, String> agentConfigMap = new HashMap<String, String>(){ };
+
+	/**
+	 * buildAgentConfigMap() builds a Map of values from the contents of the Config class.
+	 *
+	 * @param config the configuration read in from file.
+	 * @return a Map that contains the keys and values from the configuration file.
+	 */
+	public static Map<String, Object> buildAgentConfigMap( Config config )
+	{
+		String logString = "buildAgentConfigMap()";
+		mainLogger.log( Level.FINE, logString );
+		Map<String, Object> agentConfigMap = new HashMap<String, Object>(){ };
 		agentConfigMap.put( "\"memphis_server_name\":", config.getMemphisServerName() );
 		agentConfigMap.put( "\"memphis_sql_port\":", config.getMemphisSqlPort().toString() );
 		agentConfigMap.put( "\"memphis_host\":", config.getMemphisHost() );
 		agentConfigMap.put( "\"memphis_database\":", config.getMemphisDatabase() );
-		logString = UPDATING + agentConfigFileName;
-		mainLogger.log( Level.INFO, logString );
-		updateConfig( agentConfigFileName, agentConfigMap, false );
-
-		// ctReplicationManager.cfg configuration section.
-		if( !config.getReplicationManagerFileName().isEmpty() )
-		{
-			String replicationManagerConfigFileName = config.getBaseDirectory() + FILE_SEP + config.getConfigDirectory() + FILE_SEP + config.getReplicationManagerFileName();
-			Map<String, String> replicationManagerConfigMap = new HashMap<String, String>(){ };
-			// Note that this uses the same port configured in the agent.json section.
-			replicationManagerConfigMap.put( "MEMPHIS_SQL_PORT", config.getMemphisSqlPort().toString() );
-			logString = UPDATING + replicationManagerConfigFileName;
-			mainLogger.log( Level.INFO, logString );
-			updateConfig( replicationManagerConfigFileName, replicationManagerConfigMap, true );
-		}
-	} // End of main() method.
+		return agentConfigMap;
+	} // End of buildAgentConfigMap() method.
 
 
 	/**
@@ -106,7 +198,7 @@ public class Main
 	 * @param configMap      a map containing keys to search for and values to append to those keys.
 	 * @param startsWith     flag to indicate the line should start with the key, instead of just containing the key.
 	 */
-	private static void updateConfig( String configFileName, Map<String, String> configMap, boolean startsWith )
+	private static boolean updateConfig( String configFileName, Map<String, Object> configMap, boolean startsWith )
 	{
 		String logString = "updateConfig()";
 		mainLogger.log( Level.FINE, logString );
@@ -114,6 +206,7 @@ public class Main
 		// Open the server config file.
 		File configFile = new File( configFileName );
 		String suffix = "";
+		// JSON lines need to end with a comma.  This will cause problems if it is the last element in an object or array.
 		if( configFileName.endsWith( "json" ) )
 			suffix = ",";
 
@@ -132,7 +225,9 @@ public class Main
 		{
 			logString = "Unable to find the configuration file: " + configFileName;
 			mainLogger.log( Level.INFO, logString );
+			return false;
 		}
+		return true;
 	} // End of updateConfig() method.
 
 
@@ -194,7 +289,7 @@ public class Main
 	 * If the String does not contain any of the keys in the HashMap, no changes will be made to that line.<br>
 	 * <br>
 	 * The startsWith boolean is set to true in cases where a comment line also contains the key we are searching for.<br>
-	 * This prevents the method from uncommenting comment lines.  This is typically used for 'ctReplicationManager.cfg'<br>
+	 * This prevents the method from uncommenting comment lines, which would happen in 'ctsrvr.cfg' and 'ctReplicationManager.cfg'<br>
 	 * If startsWith is set to true, and a file has lines that need to be uncommented, this method will not uncomment them.<br>
 	 * The startsWith value should not be set to true for formatted JSON, because it will skip indented lines.<br>
 	 *
@@ -204,19 +299,22 @@ public class Main
 	 * @param startsWith flag to indicate the line should start with the key, instead of just containing the key.
 	 * @return a String containing the key and value.
 	 */
-	static String fixLine( String line, Map<String, String> myMap, String suffix, boolean startsWith )
+	static String fixLine( String line, Map<String, Object> myMap, String suffix, boolean startsWith )
 	{
 		String logString = "fixLine()";
 		mainLogger.log( Level.FINE, logString );
 
-		for( Map.Entry<String, String> entry : myMap.entrySet() )
+		for( Map.Entry<String, Object> entry : myMap.entrySet() )
 		{
 			String key = entry.getKey();
 			Object value = entry.getValue();
 
 			if( line.contains( key ) )
 			{
-				// This block will uncomment lines.
+				// Values may need to be quoted if this is a JSON file.
+				if( suffix.equals( "," ) )
+					value = quoteIfNeeded( value );
+				// This block will uncomment lines and update the contents of the line.
 				if( !startsWith )
 				{
 					// Try to preserve indentation.
@@ -226,6 +324,7 @@ public class Main
 					{
 						indentation = indentation.replaceFirst( ";", "" );
 					}
+					// Build the line with the indentation, the key, a tab, the value, and the suffix.
 					line = indentation + key + '\t' + value + suffix;
 					logString = "\tfixLine() is updating this line: '" + line + "'";
 					mainLogger.log( Level.INFO, logString );
@@ -246,62 +345,109 @@ public class Main
 
 
 	/**
-	 * getConfig() will validate the configuration file name and call loadConfig().
+	 * quoteIfNeeded()
+	 *
+	 * Wrap the value in quotes if it is a String.
+	 */
+	@SuppressWarnings( "squid:S106" )
+	private static Object quoteIfNeeded( Object value )
+	{
+		String logString = "quoteIfNeeded() is checking \"" + value + "\"";
+		mainLogger.log( Level.FINE, logString );
+
+		// Exit if the value is already quoted.
+		if( value.toString().startsWith( "\"" ) && value.toString().endsWith( "\"" ) )
+		{
+			logString = "quoteIfNeeded() is skipping " + value + " because it is already quoted.";
+			mainLogger.log( Level.FINE, logString );
+			return value;
+		}
+
+		String ipAddressPatternString = "\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b";
+		String digitPatternString = "\\d+";
+		String wordPatternString = "\\w+";
+
+		Pattern ipAddressPattern = Pattern.compile( ipAddressPatternString );
+		Matcher ipAddressMatcher = ipAddressPattern.matcher( value.toString() );
+		if( ipAddressMatcher.matches() )
+		{
+			// Wrap the IP address in quotes.
+			value = "\"" + value + "\"";
+			return value;
+		}
+		Pattern digitPattern = Pattern.compile( digitPatternString );
+		Matcher digitMatcher = digitPattern.matcher( value.toString() );
+		if( digitMatcher.matches() )
+		{
+			return value;
+		}
+		Pattern wordPattern = Pattern.compile( wordPatternString );
+		Matcher wordMatcher = wordPattern.matcher( value.toString() );
+		if( wordMatcher.matches() )
+		{
+			// Wrap the word in quotes.
+			value = "\"" + value + "\"";
+			return value;
+		}
+
+		logString = "Don't know what to do with: " + value;
+		mainLogger.log( Level.WARNING, logString );
+		return value;
+	} // End of quoteIfNeeded() method.
+
+
+	/**
+	 * getConfig() will validate that the input file name exists on the filesystem and is not a directory.
 	 *
 	 * @param configFileName the name of the configuration file to load.
-	 * @return a Config class object representing the configuration file.
+	 * @return true if the file exists on the filesystem and is not a directory.
 	 */
-	static Config validateConfigFileName( String configFileName )
+	static boolean validateConfigFileName( String configFileName )
 	{
-		String logString = "validateConfigFileName()";
+		String logString = "validateConfigFileName() is reading in \"" + configFileName + "\"";
 		mainLogger.log( Level.FINE, logString );
 
 		// Create a File object using configFileName.
 		File configFile = new File( configFileName );
 
 		// Ensure the file exists and is not a directory.
-		if( !configFile.exists() || configFile.isDirectory() )
-		{
-			exiting( "Invalid configuration file!", -5 );
-		}
-		// Read configFile into Gson to create a Config class object.
-		Config config = loadConfig( configFile );
-		if( config == null )
-		{
-			// Exit the program if there was any JSON error.
-			exiting( "Unable to load the configuration file " + configFileName, -6 );
-		}
-		assert config != null;
-		return config;
+		return configFile.exists() || !configFile.isDirectory();
 	} // End of validateConfigFileName() method.
 
 
 	/**
 	 * loadConfig() will read in the configuration file and return a Config class object.
-	 * This method will not return null.  See below.
 	 *
-	 * @param configFile the File to open.
-	 * @return a Config class object, or null if JSON is null or empty.
+	 * @param configFileName the name of the file to open.
+	 * @return an Array of Config class objects, or null if JSON is null or empty.
 	 */
-	static Config loadConfig( File configFile )
+	static Config[] loadConfig( String configFileName )
 	{
 		String logString = "getConfig()";
 		mainLogger.log( Level.FINE, logString );
 
 		Gson gson = new Gson();
+		Config[] loadConfig = new Config[]{};
 		try
 		{
 			// Read configFile into Gson to create a Config class object.
-			return gson.fromJson( new BufferedReader( new FileReader( configFile ) ), Config.class );
+			loadConfig = gson.fromJson( new BufferedReader( new FileReader( configFileName ) ), Config[].class );
 		}
 		catch( FileNotFoundException fileNotFoundException )
 		{
 			mainLogger.log( Level.SEVERE, fileNotFoundException.getLocalizedMessage(), fileNotFoundException );
 			// Exit if there are any file IO issues.
-			exiting( fileNotFoundException.getLocalizedMessage(), -7 );
+			exiting( fileNotFoundException.getLocalizedMessage(), -5 );
+		}
+		catch( JsonSyntaxException jsonSyntaxException )
+		{
+			logString = "The configuration file is malformed and unusable!";
+			mainLogger.log( Level.SEVERE, logString );
+			// Exit if the JSON was malformed.
+			exiting( jsonSyntaxException.getLocalizedMessage(), -6 );
 		}
 		// This should be unreachable because of the exiting() function in the catch block above.
-		return null;
+		return loadConfig;
 	} // End of loadConfig() method.
 
 
@@ -384,6 +530,67 @@ public class Main
 		singleLine.setFormatter( new SimpleFormatter()
 		{
 			private static final String FORMAT = "[%1$tF %1$tT] [%2$-7s] %3$s %n";
+
+
+			@Override
+			public synchronized String format( LogRecord logRecord )
+			{
+				return String.format( FORMAT,
+					new Date( logRecord.getMillis() ),
+					logRecord.getLevel().getLocalizedName(),
+					logRecord.getMessage()
+				);
+			}
+		} );
+	} // End of static block.
+
+	/**
+	 * singleToTriple() will switch the logging from single-line, to triple-line output.
+	 */
+	static void singleToTriple()
+	{
+		mainLogger.addHandler( tripleLine );
+		mainLogger.removeHandler( singleLine );
+	} // End of singleToTriple() method.
+
+
+	/**
+	 * tripleToSingle() will switch the logging from triple-line, to single-line output.
+	 */
+	static void tripleToSingle()
+	{
+		mainLogger.addHandler( singleLine );
+		mainLogger.removeHandler( tripleLine );
+	} // End of tripleToSingle() method.
+
+
+	// Set up the default format for the console logger.
+	static
+	{
+		singleLine.setFormatter( new SimpleFormatter()
+		{
+			private static final String FORMAT = "[%1$tF %1$tT] [%2$-7s] %3$s %n";
+
+
+			@Override
+			public synchronized String format( LogRecord logRecord )
+			{
+				return String.format( FORMAT,
+					new Date( logRecord.getMillis() ),
+					logRecord.getLevel().getLocalizedName(),
+					logRecord.getMessage()
+				);
+			}
+		} );
+	} // End of static block.
+
+
+	// Set up the format for the console logger that has extra blank lines prepended.
+	static
+	{
+		tripleLine.setFormatter( new SimpleFormatter()
+		{
+			private static final String FORMAT = "\n\n[%1$tF %1$tT] [%2$-7s] %3$s %n";
 
 
 			@Override
