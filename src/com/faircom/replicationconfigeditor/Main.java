@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
  * Confirmed that the JAR file works at the Windows command line at 12:37.
  * Refactored individual configuration update functions into a single generic function at 12:57
  * This will enable the program to keep track of all ports, and warn of conflicts.
+ * This program will NOT add new lines to these files.
  */
 public class Main
 {
@@ -29,7 +30,7 @@ public class Main
 	private static final ConsoleHandler singleLine = new ConsoleHandler();
 	private static final ConsoleHandler tripleLine = new ConsoleHandler();
 	private static final String FILE_SEP = System.getProperty( "file.separator" );
-	private static final String BUILD_TIME = "main() - build 2021-09-30 1742";
+	private static final String BUILD_TIME = "main() - build 2021-10-19 1225";
 	private static final String UPDATING = "Updating ";
 	private static final String UNABLE_TO_UPDATE = "Unable to update \"";
 
