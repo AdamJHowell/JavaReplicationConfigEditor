@@ -142,7 +142,7 @@ public class Main
 		mainLogger.log( Level.FINE, logString );
 		Map<String, Object> serverConfigMap = new HashMap<String, Object>(){ };
 		serverConfigMap.put( "SERVER_NAME", config.getServerName() );
-		serverConfigMap.put( "SERVER_PORT", config.getServerPort() );
+//		serverConfigMap.put( "SERVER_PORT", config.getServerPort() );
 		serverConfigMap.put( "READONLY_SERVER", config.getReadOnlyServer() );
 		serverConfigMap.put( "SQL_PORT", config.getSqlPort() );
 		return serverConfigMap;
@@ -195,36 +195,36 @@ public class Main
 	 * It does this by opening the file, parsing every line, and writing and updated file.
 	 * Lines are updated by the fixLine() method.
 	 *
-	 * @param configFileName the file to open and parse.
+	 * @param updateFileName the file to open and parse.
 	 * @param configMap      a map containing keys to search for and values to append to those keys.
 	 * @param startsWith     flag to indicate the line should start with the key, instead of just containing the key.
 	 */
-	private static boolean updateConfig( String configFileName, Map<String, Object> configMap, boolean startsWith )
+	private static boolean updateConfig( String updateFileName, Map<String, Object> configMap, boolean startsWith )
 	{
 		String logString = "updateConfig()";
 		mainLogger.log( Level.FINE, logString );
 
 		// Open the server config file.
-		File configFile = new File( configFileName );
+		File updateFile = new File( updateFileName );
 		String suffix = "";
 		// JSON lines need to end with a comma.  This will cause problems if it is the last element in an object or array.
-		if( configFileName.endsWith( "json" ) )
+		if( updateFileName.endsWith( "json" ) )
 			suffix = ",";
 
-		if( configFile.exists() && configFile.isFile() )
+		if( updateFile.exists() && updateFile.isFile() )
 		{
-			List<String> fileLinesList = readFileToList( configFileName );
+			List<String> fileLinesList = readFileToList( updateFileName );
 
 			for( int i = 0; i < fileLinesList.size(); i++ )
 			{
 				// Set this entry of the list to the fixed line.
 				fileLinesList.set( i, fixLine( fileLinesList.get( i ), configMap, suffix, startsWith ) );
 			}
-			writeListToFile( configFileName, fileLinesList );
+			writeListToFile( updateFileName, fileLinesList );
 		}
 		else
 		{
-			logString = "Unable to find the configuration file: " + configFileName;
+			logString = "Unable to find the configuration file: " + updateFileName;
 			mainLogger.log( Level.INFO, logString );
 			return false;
 		}
@@ -294,21 +294,21 @@ public class Main
 	 * If startsWith is set to true, and a file has lines that need to be uncommented, this method will not uncomment them.<br>
 	 * The startsWith value should not be set to true for formatted JSON, because it will skip indented lines.<br>
 	 *
-	 * @param line       the String to search through.
-	 * @param myMap      a HashMap of keys to search for and values to append.
-	 * @param suffix     a suffix to add to the end of the line.
-	 * @param startsWith flag to indicate the line should start with the key, instead of just containing the key.
+	 * @param line        the String to search through.
+	 * @param keyValueMap a HashMap of keys to search for and values to append.
+	 * @param suffix      a suffix to add to the end of the line.
+	 * @param startsWith  flag to indicate the line should start with the key, instead of just containing the key.
 	 * @return a String containing the key and value.
 	 */
-	static String fixLine( String line, Map<String, Object> myMap, String suffix, boolean startsWith )
+	static String fixLine( String line, Map<String, Object> keyValueMap, String suffix, boolean startsWith )
 	{
 		String logString = "fixLine()";
 		mainLogger.log( Level.FINE, logString );
 
-		for( Map.Entry<String, Object> entry : myMap.entrySet() )
+		for( Map.Entry<String, Object> keyValuePair : keyValueMap.entrySet() )
 		{
-			String key = entry.getKey();
-			Object value = entry.getValue();
+			String key = keyValuePair.getKey();
+			Object value = keyValuePair.getValue();
 
 			if( line.contains( key ) )
 			{
