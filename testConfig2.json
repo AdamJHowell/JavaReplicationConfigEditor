@@ -4,7 +4,6 @@
 
 	"serverFileName":     "ctsrvr.cfg",
 	"serverName":         "FAIRCOM2",
-	"serverPort":         "19800",
 	"readOnlyServer":     "NO",
 	"sqlPort":            "19801",
 

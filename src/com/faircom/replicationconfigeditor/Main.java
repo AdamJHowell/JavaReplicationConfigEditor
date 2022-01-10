@@ -141,8 +141,10 @@ public class Main
 		String logString = "buildServerConfigMap()";
 		mainLogger.log( Level.FINE, logString );
 		Map<String, Object> serverConfigMap = new HashMap<String, Object>(){ };
-		serverConfigMap.put( "SERVER_NAME", config.getServerName() );
-//		serverConfigMap.put( "SERVER_PORT", config.getServerPort() );
+		if( !config.getServerName().isEmpty() )
+			serverConfigMap.put( "SERVER_NAME", config.getServerName() );
+		if( !config.getServerPort().isEmpty() )
+			serverConfigMap.put( "SERVER_PORT", config.getServerPort() );
 		serverConfigMap.put( "READONLY_SERVER", config.getReadOnlyServer() );
 		serverConfigMap.put( "SQL_PORT", config.getSqlPort() );
 		return serverConfigMap;
@@ -217,7 +219,7 @@ public class Main
 
 			for( int i = 0; i < fileLinesList.size(); i++ )
 			{
-				// Set this entry of the list to the fixed line.
+				// Call fixLine() and set this entry to its return value.
 				fileLinesList.set( i, fixLine( fileLinesList.get( i ), configMap, suffix, startsWith ) );
 			}
 			writeListToFile( updateFileName, fileLinesList );
@@ -516,11 +518,11 @@ public class Main
 		}
 		catch( IOException ioException )
 		{
+			// This block will log the exception, but allow the program to continue, so it can process the remaining files.
 			logString = "Unable to write to the output file: " + outFileName;
 			mainLogger.log( Level.SEVERE, logString );
 			logString = ioException.getLocalizedMessage();
 			mainLogger.log( Level.SEVERE, logString );
-			ioException.printStackTrace();
 		}
 	} // End of writeStringToFile() method.
 
