@@ -8,6 +8,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.*;
 import java.util.regex.Matcher;
@@ -30,7 +31,8 @@ public class Main
 	private static final ConsoleHandler singleLine = new ConsoleHandler();
 	private static final ConsoleHandler tripleLine = new ConsoleHandler();
 	private static final String FILE_SEP = System.getProperty( "file.separator" );
-	private static final String BUILD_TIME = "main() - build 2021-10-19 1225";
+	private static final String BUILD_TIME = "main() - build 2022-02-22 08:58";
+	private static final String DATE = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" ).format( new Date() );
 	private static final String UPDATING = "Updating ";
 	private static final String UNABLE_TO_UPDATE = "Unable to update \"";
 
@@ -43,6 +45,8 @@ public class Main
 		String logString = "Welcome to Java Replication Config Editor!";
 		mainLogger.log( Level.INFO, logString );
 		mainLogger.log( Level.INFO, BUILD_TIME );
+		logString = "Testing initiated at " + DATE;
+		mainLogger.log( Level.INFO, logString );
 
 		String configFileName = "config.json";
 		if( args.length > 0 )
