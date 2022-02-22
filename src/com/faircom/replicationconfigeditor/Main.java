@@ -45,7 +45,7 @@ public class Main
 		String logString = "Welcome to Java Replication Config Editor!";
 		mainLogger.log( Level.INFO, logString );
 		mainLogger.log( Level.INFO, BUILD_TIME );
-		logString = "Testing initiated at " + DATE;
+		logString = "Program initiated at " + DATE;
 		mainLogger.log( Level.INFO, logString );
 
 		String configFileName = "config.json";
