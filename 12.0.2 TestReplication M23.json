@@ -1,6 +1,6 @@
 [
 	{
-		"baseDirectory":              "c:/faircom/TestReplication/ReplicationManager",
+		"baseDirectory":              "C:/faircom/TestReplication/ReplicationManager",
 		"configDirectory":            "config",
 
 		"serverFileName":             "ctsrvr.cfg",
@@ -23,7 +23,7 @@
 		"replicationManagerFileName": "ctReplicationManager.cfg"
 	},
 	{
-		"baseDirectory":      "c:/faircom/TestReplication/FAIRCOM2",
+		"baseDirectory":      "C:/faircom/TestReplication/FAIRCOM2",
 		"configDirectory":    "config",
 
 		"serverFileName":     "ctsrvr.cfg",
@@ -44,7 +44,7 @@
 		"memphisDatabase":    "MEMPHIS"
 	},
 	{
-		"baseDirectory":      "c:/faircom/TestReplication/FAIRCOM3",
+		"baseDirectory":      "C:/faircom/TestReplication/FAIRCOM3",
 		"configDirectory":    "config",
 
 		"serverFileName":     "ctsrvr.cfg",

@@ -58,7 +58,7 @@ public class Main
 			Config[] configArray = loadConfig( configFileName );
 			if( configArray.length == 0 )
 			{
-				exiting( "Unable to parse the JSON in \"" + configFileName + "\" into an Array of Config class objects.", -2 );
+				exiting( "Unable to parse the JSON in \"" + configFileName + "\" into an Array of Config class objects.", -1 );
 			}
 			// Parse all configured nodes.
 			for( Config configuredNode : configArray )
@@ -68,7 +68,7 @@ public class Main
 		}
 		else
 		{
-			exiting( "Cannot locate the configuration file!", -3 );
+			exiting( "Cannot locate the configuration file!", -2 );
 		}
 	} // End of main() method.
 
@@ -101,7 +101,7 @@ public class Main
 			clearComment( serverConfigFileName, "ctagent." );
 		}
 		else
-			exiting( UNABLE_TO_UPDATE + serverConfigFileName + "\"", -4 );
+			exiting( UNABLE_TO_UPDATE + serverConfigFileName + "\"", -3 );
 
 		// cthttpd.json configuration section.
 		String httpConfigFileName = configDirectory + FILE_SEP + configuredNode.getHttpFileName();
@@ -117,7 +117,7 @@ public class Main
 		logString = UPDATING + agentConfigFileName;
 		mainLogger.log( Level.INFO, logString );
 		if( !updateConfig( agentConfigFileName, agentConfigMap, false ) )
-			exiting( UNABLE_TO_UPDATE + agentConfigFileName + "\"", -4 );
+			exiting( UNABLE_TO_UPDATE + agentConfigFileName + "\"", -5 );
 
 		// Replication Manager is the only node that has ctReplicationManager.cfg.
 		if( !configuredNode.getReplicationManagerFileName().isEmpty() )
@@ -125,11 +125,14 @@ public class Main
 			String replicationManagerConfigFileName = configDirectory + FILE_SEP + configuredNode.getReplicationManagerFileName();
 			Map<String, Object> replicationManagerConfigMap = new HashMap<String, Object>(){ };
 			// Note that this uses the same port configured in the agent.json section.
+			replicationManagerConfigMap.put( "MEMPHIS_SERVER_NAME", configuredNode.getMemphisServerName() );
 			replicationManagerConfigMap.put( "MEMPHIS_SQL_PORT", configuredNode.getMemphisSqlPort().toString() );
+			replicationManagerConfigMap.put( "MEMPHIS_HOST", configuredNode.getMemphisHost() );
+			replicationManagerConfigMap.put( "MEMPHIS_DATABASE", configuredNode.getMemphisDatabase() );
 			logString = UPDATING + replicationManagerConfigFileName;
 			mainLogger.log( Level.INFO, logString );
 			if( !updateConfig( replicationManagerConfigFileName, replicationManagerConfigMap, true ) )
-				exiting( UNABLE_TO_UPDATE + replicationManagerConfigFileName + "\"", -4 );
+				exiting( UNABLE_TO_UPDATE + replicationManagerConfigFileName + "\"", -6 );
 		}
 	} // End of updateFiles() method.
 
@@ -167,12 +170,20 @@ public class Main
 		mainLogger.log( Level.FINE, logString );
 		Map<String, Object> httpConfigMap = new HashMap<String, Object>(){ };
 		httpConfigMap.put( "\"listening_http_port\":", config.getListeningHttpPort().toString() );
+		httpConfigMap.put( "\"http_port\":", config.getListeningHttpPort().toString() );
 		httpConfigMap.put( "\"listening_https_port\":", config.getListeningHttpsPort().toString() );
+		httpConfigMap.put( "\"https_port\":", config.getListeningHttpsPort().toString() );
 		// Replication Manager does not have settings for MQTT ports, so Gson will set these to null if they are absent from the configuration file.
 		if( config.getMqttListeningPort() != null )
+		{
 			httpConfigMap.put( "\"mqtt_listening_port\":", config.getMqttListeningPort().toString() );
+			httpConfigMap.put( "\"mqtt_port\":", config.getMqttListeningPort().toString() );
+		}
 		if( config.getMqttWebsocketPort() != null )
+		{
 			httpConfigMap.put( "\"mqtt_websocket_port\":", config.getMqttWebsocketPort().toString() );
+			httpConfigMap.put( "\"websocket_port\":", config.getMqttWebsocketPort().toString() );
+		}
 		return httpConfigMap;
 	} // End of buildHTTPConfigMap() method.
 
@@ -443,16 +454,17 @@ public class Main
 		}
 		catch( FileNotFoundException fileNotFoundException )
 		{
-			mainLogger.log( Level.SEVERE, fileNotFoundException.getLocalizedMessage(), fileNotFoundException );
+			logString = "Unable to locate configuration file \"" + configFileName + "\"!";
+			mainLogger.log( Level.SEVERE, logString );
 			// Exit if there are any file IO issues.
-			exiting( fileNotFoundException.getLocalizedMessage(), -5 );
+			exiting( fileNotFoundException.getLocalizedMessage(), -7 );
 		}
 		catch( JsonSyntaxException jsonSyntaxException )
 		{
 			logString = "The configuration file is malformed and unusable!";
 			mainLogger.log( Level.SEVERE, logString );
 			// Exit if the JSON was malformed.
-			exiting( jsonSyntaxException.getLocalizedMessage(), -6 );
+			exiting( jsonSyntaxException.getLocalizedMessage(), -8 );
 		}
 		// This should be unreachable because of the exiting() function in the catch block above.
 		return loadConfig;
@@ -622,6 +634,7 @@ public class Main
 	static void exiting( String message, int exitCode )
 	{
 		mainLogger.log( Level.SEVERE, message );
+		mainLogger.log( Level.SEVERE, () -> "Exit code: " + exitCode );
 		mainLogger.log( Level.INFO, "Exiting..." );
 		System.exit( exitCode );
 	} // End of exiting() method.

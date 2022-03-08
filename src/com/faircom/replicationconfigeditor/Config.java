@@ -6,6 +6,7 @@ package com.faircom.replicationconfigeditor;
  * It should be able to edit any file that it has write access to (CIFS, SAN, etc.).<br>
  * It contains cTree JDBC, MQTT server, and test parameters.
  */
+@SuppressWarnings( "squid:S116" )
 class Config
 {
 	/**
@@ -62,21 +63,25 @@ class Config
 	 * Defaults to 19993.
 	 */
 	private final Integer listeningHttpPort;
+	private final Integer http_port;
 	/**
 	 * The 'listening_https_port' value for 'cthttpd.json'.
 	 * Defaults to 19992.
 	 */
 	private final Integer listeningHttpsPort;
+	private final Integer https_port;
 	/**
 	 * The 'mqtt_listening_port' value for 'cthttpd.json'.
 	 * Defaults to null.
 	 */
 	private final Integer mqttListeningPort;
+	private final Integer mqtt_port;
 	/**
 	 * The 'mqtt_websocket_port' value for 'cthttpd.json'.
 	 * Defaults to null.
 	 */
 	private final Integer mqttWebsocketPort;
+	private final Integer websocket_port;
 
 
 	/**
@@ -89,28 +94,32 @@ class Config
 	 * Defaults to a "MEMPHIS".
 	 */
 	private final String memphisServerName;
+	private final String memphis_server_name;
 	/**
 	 * The 'memphis_sql_port' value for 'ctagent.json'.
 	 * This value will also be used to update ctReplicationManager.cfg.
 	 */
 	private final Integer memphisSqlPort;
+	private final Integer memphis_sql_port;
 	/**
 	 * The 'memphis_host' value for 'ctagent.json'.
 	 * Defaults to "127.0.0.1".
 	 */
 	private final String memphisHost;
+	private final String memphis_host;
 	/**
 	 * The 'memphis_database' value for 'ctagent.json'.
 	 * Defaults to a "MEMPHIS".
 	 */
 	private final String memphisDatabase;
+	private final String memphis_database;
 
 
 	/**
 	 * Optional: The name of the Agent config file.
 	 * Defaults to 'ctReplicationManager.cfg'.
 	 * This file only exists in the Replication Manager (Memphis) config directory.
-	 * The 'MEMPHIS_SQL_PORT' value in this file will be updated with the value from memphisSqlPort.
+	 * The 'MEMPHIS_SERVER_NAME', 'MEMPHIS_SQL_PORT', 'MEMPHIS_HOST', and 'MEMPHIS_DATABASE' value in this file will be updated with the values from ctagent.
 	 * Defaults to an empty String.
 	 */
 	private final String replicationManagerFileName;
@@ -118,11 +127,11 @@ class Config
 
 	/**
 	 * The no-arg constructor prevents Gson from initializing missing values to null.
+	 * Some values are deliberately set to null.  This is used as a way to handle JSON property name changes in 12.5.
 	 * These defaults are set to a typical Replication Manager setup.
 	 */
 	public Config()
 	{
-		String memphis = "MEMPHIS";
 		this.baseDirectory = "";
 		this.configDirectory = "config";
 		this.serverFileName = "ctsrvr.cfg";
@@ -131,15 +140,23 @@ class Config
 		this.readOnlyServer = "NO";
 		this.sqlPort = "19991";
 		this.httpFileName = "cthttpd.json";
-		this.listeningHttpPort = 19993;
-		this.listeningHttpsPort = 19992;
+		this.listeningHttpPort = null;
+		this.http_port = null;
+		this.listeningHttpsPort = null;
+		this.https_port = null;
 		this.mqttListeningPort = null;
+		this.mqtt_port = null;
 		this.mqttWebsocketPort = null;
+		this.websocket_port = null;
 		this.agentFileName = "ctagent.json";
-		this.memphisServerName = memphis;
-		this.memphisSqlPort = 19991;
-		this.memphisHost = "127.0.0.1";
-		this.memphisDatabase = memphis;
+		this.memphis_server_name = "";
+		this.memphisServerName = "";
+		this.memphisSqlPort = null;
+		this.memphis_sql_port = null;
+		this.memphisHost = "";
+		this.memphis_host = "";
+		this.memphisDatabase = "";
+		this.memphis_database = "";
 		this.replicationManagerFileName = "";
 	}
 
@@ -194,25 +211,33 @@ class Config
 
 	public Integer getListeningHttpPort()
 	{
-		return listeningHttpPort;
+		if( http_port == null )
+			return listeningHttpPort;
+		return http_port;
 	}
 
 
 	public Integer getListeningHttpsPort()
 	{
-		return listeningHttpsPort;
+		if( https_port == null )
+			return listeningHttpsPort;
+		return https_port;
 	}
 
 
 	public Integer getMqttListeningPort()
 	{
-		return mqttListeningPort;
+		if( mqtt_port == null )
+			return mqttListeningPort;
+		return mqtt_port;
 	}
 
 
 	public Integer getMqttWebsocketPort()
 	{
-		return mqttWebsocketPort;
+		if( websocket_port == null )
+			return mqttWebsocketPort;
+		return websocket_port;
 	}
 
 
@@ -224,25 +249,33 @@ class Config
 
 	public String getMemphisServerName()
 	{
-		return memphisServerName;
+		if( memphis_server_name.isEmpty() )
+			return memphisServerName;
+		return memphis_server_name;
 	}
 
 
 	public Integer getMemphisSqlPort()
 	{
-		return memphisSqlPort;
+		if( memphis_sql_port == null )
+			return memphisSqlPort;
+		return memphis_sql_port;
 	}
 
 
 	public String getMemphisHost()
 	{
-		return memphisHost;
+		if( memphis_host.isEmpty() )
+			return memphisHost;
+		return memphis_host;
 	}
 
 
 	public String getMemphisDatabase()
 	{
-		return memphisDatabase;
+		if( memphis_database.isEmpty() )
+			return memphisDatabase;
+		return memphis_database;
 	}
 
 

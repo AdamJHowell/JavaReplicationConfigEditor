@@ -1,0 +1,67 @@
+[
+	{
+		"baseDirectory":              "C:/FairCom/TestReplication/ReplicationManager",
+		"configDirectory":            "config",
+
+		"serverFileName":             "ctsrvr.cfg",
+		"serverName":                 "MEMPHIS",
+		"readOnlyServer":             "NO",
+		"sqlPort":                    "19991",
+
+		"httpFileName":               "cthttpd.json",
+		"http_port":                  19993,
+		"https_port":                 19992,
+		"mqtt_port":                  1889,
+		"websocket_port":             8089,
+
+		"agentFileName":              "ctagent.json",
+		"memphis_server_name":        "MEMPHIS",
+		"memphis_sql_port":           19991,
+		"memphis_host":               "127.0.0.1",
+		"memphis_database":           "MEMPHIS",
+
+		"replicationManagerFileName": "ctReplicationManager.cfg"
+	},
+	{
+		"baseDirectory":       "C:/FairCom/TestReplication/FAIRCOM2",
+		"configDirectory":     "config",
+
+		"serverFileName":      "ctsrvr.cfg",
+		"serverName":          "FAIRCOM2",
+		"readOnlyServer":      "NO",
+		"sqlPort":             "19801",
+
+		"httpFileName":        "cthttpd.json",
+		"http_port":           19803,
+		"https_port":          19802,
+		"mqtt_port":           1884,
+		"websocket_port":      8082,
+
+		"agentFileName":       "ctagent.json",
+		"memphis_server_name": "MEMPHIS",
+		"memphis_sql_port":    19991,
+		"memphis_host":        "127.0.0.1",
+		"memphis_database":    "MEMPHIS"
+	},
+	{
+		"baseDirectory":       "C:/FairCom/TestReplication/FAIRCOM3",
+		"configDirectory":     "config",
+
+		"serverFileName":      "ctsrvr.cfg",
+		"serverName":          "FAIRCOM3",
+		"readOnlyServer":      "NO",
+		"sqlPort":             "19811",
+
+		"httpFileName":        "cthttpd.json",
+		"http_port":           19813,
+		"https_port":          19812,
+		"mqtt_port":           1885,
+		"websocket_port":      8083,
+
+		"agentFileName":       "ctagent.json",
+		"memphis_server_name": "MEMPHIS",
+		"memphis_sql_port":    19991,
+		"memphis_host":        "127.0.0.1",
+		"memphis_database":    "MEMPHIS"
+	}
+]
