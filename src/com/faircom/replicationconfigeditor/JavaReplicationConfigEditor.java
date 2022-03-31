@@ -25,9 +25,9 @@ import java.util.regex.Pattern;
  * This will enable the program to keep track of all ports, and warn of conflicts.
  * This program will NOT add new lines to these files.
  */
-public class Main
+public class JavaReplicationConfigEditor
 {
-	private static final Logger mainLogger = Logger.getLogger( Main.class.getName() );
+	private static final Logger mainLogger = Logger.getLogger( JavaReplicationConfigEditor.class.getName() );
 	private static final ConsoleHandler singleLine = new ConsoleHandler();
 	private static final ConsoleHandler tripleLine = new ConsoleHandler();
 	private static final String FILE_SEP = System.getProperty( "file.separator" );
