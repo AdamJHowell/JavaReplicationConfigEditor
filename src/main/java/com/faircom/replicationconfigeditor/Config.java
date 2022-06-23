@@ -1,4 +1,4 @@
-package com.faircom.replicationconfigeditor;
+package main.java.com.faircom.replicationconfigeditor;
 
 
 /**
