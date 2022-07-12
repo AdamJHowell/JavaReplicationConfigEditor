@@ -1,0 +1,67 @@
+[
+	{
+		"baseDirectory":              "c:/faircom/TestReplicationDB/ReplicationManager",
+		"configDirectory":            "config",
+
+		"serverFileName":             "ctsrvr.cfg",
+		"serverName":                 "MEMPHIS",
+		"readOnlyServer":             "NO",
+		"sqlPort":                    "19991",
+
+		"httpFileName":               "cthttpd.json",
+		"listeningHttpPort":          19993,
+		"listeningHttpsPort":         19992,
+		"mqttListeningPort":          1889,
+		"mqttWebsocketPort":          8089,
+
+		"agentFileName":              "ctagent.json",
+		"memphisServerName":          "MEMPHIS",
+		"memphisSqlPort":             19991,
+		"memphisHost":                "127.0.0.1",
+		"memphisDatabase":            "MEMPHIS",
+
+		"replicationManagerFileName": "ctReplicationManager.cfg"
+	},
+	{
+		"baseDirectory":      "c:/faircom/TestReplicationDB/FAIRCOM2",
+		"configDirectory":    "config",
+
+		"serverFileName":     "ctsrvr.cfg",
+		"serverName":         "FAIRCOM2",
+		"readOnlyServer":     "NO",
+		"sqlPort":            "19801",
+
+		"httpFileName":       "cthttpd.json",
+		"listeningHttpPort":  19803,
+		"listeningHttpsPort": 19802,
+		"mqttListeningPort":  1884,
+		"mqttWebsocketPort":  8082,
+
+		"agentFileName":      "ctagent.json",
+		"memphisServerName":  "MEMPHIS",
+		"memphisSqlPort":     19991,
+		"memphisHost":        "127.0.0.1",
+		"memphisDatabase":    "MEMPHIS"
+	},
+	{
+		"baseDirectory":      "c:/faircom/TestReplicationDB/FAIRCOM3",
+		"configDirectory":    "config",
+
+		"serverFileName":     "ctsrvr.cfg",
+		"serverName":         "FAIRCOM3",
+		"readOnlyServer":     "NO",
+		"sqlPort":            "19811",
+
+		"httpFileName":       "cthttpd.json",
+		"listeningHttpPort":  19813,
+		"listeningHttpsPort": 19812,
+		"mqttListeningPort":  1885,
+		"mqttWebsocketPort":  8083,
+
+		"agentFileName":      "ctagent.json",
+		"memphisServerName":  "MEMPHIS",
+		"memphisSqlPort":     19991,
+		"memphisHost":        "127.0.0.1",
+		"memphisDatabase":    "MEMPHIS"
+	}
+]
