@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 
 <AnchorPane prefHeight="600.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.java.resources.com.faircom.replicationconfigeditor.ReplicationEditor">
-	<GridPane layoutX="132.0" layoutY="31.0" prefHeight="600.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+	<GridPane layoutX="132.0" layoutY="31.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 		<columnConstraints>
 			<ColumnConstraints hgrow="SOMETIMES" maxWidth="295.0" minWidth="10.0" prefWidth="201.0" />
 			<ColumnConstraints hgrow="SOMETIMES" maxWidth="425.0" minWidth="10.0" prefWidth="399.0" />
@@ -52,22 +52,22 @@
 		<Label text="replicationManagerFileName" GridPane.rowIndex="17" />
 		<Label text="Property" />
 		<Label text="Value" GridPane.columnIndex="1" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="1" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="2" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="3" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="4" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="5" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="6" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="7" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="8" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="9" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="10" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="11" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="12" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="13" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="14" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="15" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="16" />
-		<TextField GridPane.columnIndex="1" GridPane.rowIndex="17" />
+		<TextField id="baseDirectoryTextField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+		<TextField id="configDirectoryTextField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+		<TextField id="serverFileNameTextField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+		<TextField id="serverNameTextField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+		<TextField id="readOnlyServerTextField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+		<TextField id="sqlPortTextField" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+		<TextField id="httpFileNameTextField" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+		<TextField id="httpPortTextField" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+		<TextField id="httpsPortTextField" GridPane.columnIndex="1" GridPane.rowIndex="9" />
+		<TextField id="mqttPortTextField" GridPane.columnIndex="1" GridPane.rowIndex="10" />
+		<TextField id="websocketPortTextField" GridPane.columnIndex="1" GridPane.rowIndex="11" />
+		<TextField id="agentFileNameTextField" GridPane.columnIndex="1" GridPane.rowIndex="12" />
+		<TextField id="memphisServerNameTextField" GridPane.columnIndex="1" GridPane.rowIndex="13" />
+		<TextField id="memphisSqlPortTextField" GridPane.columnIndex="1" GridPane.rowIndex="14" />
+		<TextField id="memphisHostTextField" GridPane.columnIndex="1" GridPane.rowIndex="15" />
+		<TextField id="memphisDatabaseTextField" GridPane.columnIndex="1" GridPane.rowIndex="16" />
+		<TextField id="replicationManagerFileNameTextField" GridPane.columnIndex="1" GridPane.rowIndex="17" />
 	</GridPane>
 </AnchorPane>
