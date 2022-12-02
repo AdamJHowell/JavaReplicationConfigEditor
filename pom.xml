@@ -11,7 +11,7 @@
 	<properties>
 		<java.version>1.8</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<classpath>main.java.com.faircom.replicationconfigeditor</classpath>
+		<classpath>com.faircom.replicationconfigeditor</classpath>
 		<classname>JavaReplicationConfigEditor</classname>
 	</properties>
 
@@ -25,7 +25,7 @@
 	</dependencies>
 
 	<build>
-		<sourceDirectory>${project.basedir}/src</sourceDirectory>
+		<sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
